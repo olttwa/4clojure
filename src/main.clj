@@ -177,7 +177,7 @@
   [:o :e :x]])
 
 ; https://adventofcode.com/2021/day/1
-((defn aoc-1
+((defn aoc1
    [file]
    (with-open [rdr (clojure.java.io/reader file)]
      (println
@@ -193,3 +193,23 @@
                ; Feed sequence of readings to reduce.
                (line-seq rdr)))))
  "/Users/a/w/4clojure/aoc1-input.txt")
+
+; https://adventofcode.com/2021/day/2#part1
+((defn aoc2-part1
+   [file]
+   (with-open [rdr (clojure.java.io/reader file)]
+     (println
+       (let [position
+             (reduce
+               (fn [position cmd]
+                 (let [split-cmd (clojure.string/split cmd #" ")]
+                   (case (nth split-cmd 0)
+                     "forward" (update position :horizontal + (Integer/parseInt (nth split-cmd 1)))
+                     "down" (update position :depth + (Integer/parseInt (nth split-cmd 1)))
+                     "up" (update position :depth - (Integer/parseInt (nth split-cmd 1))))))
+               ; Starting position is 0
+               {:horizontal 0 :depth 0}
+               ; Feed sequence of readings to reduce.
+               (line-seq rdr))]
+         (* (:horizontal position) (:depth position))))))
+ "/Users/a/w/4clojure/aoc2-part1-input.txt")
