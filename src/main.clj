@@ -175,3 +175,21 @@
  [[:x :e :e]
   [:o :x :e]
   [:o :e :x]])
+
+; https://adventofcode.com/2021/day/1
+((defn aoc-1
+   [file]
+   (with-open [rdr (clojure.java.io/reader file)]
+     (println
+       (reduce (fn [report depth]
+                 (let [int-depth (Integer/parseInt depth)]
+                   (if (< (:prev-depth report) int-depth)
+                     ;  If depth has increased, increase the count.
+                     (update (assoc report :prev-depth int-depth) :count inc)
+                     ;  Just update previous depth in other case.
+                     (assoc report :prev-depth int-depth))))
+               ; Set previous depth as maximum for initial value.
+               {:prev-depth Integer/MAX_VALUE :count 0}
+               ; Feed sequence of readings to reduce.
+               (line-seq rdr)))))
+ "/Users/a/w/4clojure/aoc1-input.txt")
