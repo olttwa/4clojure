@@ -4,7 +4,7 @@
 ; solved problems 2-18 in the web browser.
 
 ; https://4clojure.oxal.org/#/problem/25
-(= (filter (fn [x] (= 1 (mod x 2))) #{1 2 3 4 5}) '(1 3 5))
+(= (filter odd? #{1 2 3 4 5}) '(1 3 5))
 
 ; https://4clojure.oxal.org/#/problem/26
 ((fn fibonacci
