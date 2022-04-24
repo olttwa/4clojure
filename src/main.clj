@@ -177,9 +177,8 @@
   [:o :e :x]])
 
 ; https://adventofcode.com/2021/day/1
-((defn aoc1
+((defn aoc1-part1
    [file]
-   ; QQQ: How to open a file and propagate it's contents outside the scope?
    (with-open [rdr (clojure.java.io/reader file)]
      (:count
        (reduce
@@ -194,6 +193,25 @@
          {:prev-depth Integer/MAX_VALUE :count 0}
          ; Feed sequence of readings to reduce.
          (line-seq rdr)))))
+ "/Users/a/w/4clojure/aoc1-input.txt")
+
+; https://adventofcode.com/2021/day/1#part2
+((defn aoc1-part2
+   [file]
+   (with-open [rdr (clojure.java.io/reader file)]
+     (:count
+       (reduce
+         (fn [report depth]
+           (let [aggregated-depth (reduce (fn [x y] (+ x (Integer/parseInt y))) 0 (vec depth))]
+             (if (< (:prev-depth report) aggregated-depth)
+               ;  If depth has increased, increase the count.
+               (update (assoc report :prev-depth aggregated-depth) :count inc)
+               ;  Just update previous depth in other case.
+               (assoc report :prev-depth aggregated-depth))))
+         ; Set previous depth as maximum for initial value.
+         {:prev-depth Integer/MAX_VALUE :count 0}
+         ; Feed sequence of readings to reduce.
+         (partition 3 1 (line-seq rdr))))))
  "/Users/a/w/4clojure/aoc1-input.txt")
 
 ; https://adventofcode.com/2021/day/2#part1
