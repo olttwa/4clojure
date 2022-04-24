@@ -149,7 +149,7 @@
 
 ; https://4clojure.oxal.org/#/problem/73
 ; This solution isn't extensible :( 😭
-((defn tic-tac-toe
+((fn tic-tac-toe
    ([board] (tic-tac-toe 0 board))
    ([c board]
     ; QQQ: Idiomatic placeholder in Clojure is '_'?
@@ -179,41 +179,43 @@
 ; https://adventofcode.com/2021/day/1
 ((defn aoc1
    [file]
+   ; QQQ: How to open a file and propagate it's contents outside the scope?
    (with-open [rdr (clojure.java.io/reader file)]
-     (println
-       (reduce (fn [report depth]
-                 (let [int-depth (Integer/parseInt depth)]
-                   (if (< (:prev-depth report) int-depth)
-                     ;  If depth has increased, increase the count.
-                     (update (assoc report :prev-depth int-depth) :count inc)
-                     ;  Just update previous depth in other case.
-                     (assoc report :prev-depth int-depth))))
-               ; Set previous depth as maximum for initial value.
-               {:prev-depth Integer/MAX_VALUE :count 0}
-               ; Feed sequence of readings to reduce.
-               (line-seq rdr)))))
+     (:count
+       (reduce
+         (fn [report depth]
+           (let [int-depth (Integer/parseInt depth)]
+             (if (< (:prev-depth report) int-depth)
+               ;  If depth has increased, increase the count.
+               (update (assoc report :prev-depth int-depth) :count inc)
+               ;  Just update previous depth in other case.
+               (assoc report :prev-depth int-depth))))
+         ; Set previous depth as maximum for initial value.
+         {:prev-depth Integer/MAX_VALUE :count 0}
+         ; Feed sequence of readings to reduce.
+         (line-seq rdr)))))
  "/Users/a/w/4clojure/aoc1-input.txt")
 
 ; https://adventofcode.com/2021/day/2#part1
 ((defn aoc2-part1
    [file]
    (with-open [rdr (clojure.java.io/reader file)]
-     (println
-       (let [position
-             (reduce
-               (fn [position cmd]
-                 (let [split-cmd (clojure.string/split cmd #" ")
-                       units (Integer/parseInt (nth split-cmd 1))
-                       command (nth split-cmd 0)]
-                   (case command
-                     "forward" (update position :horizontal + units)
-                     "down" (update position :depth + units)
-                     "up" (update position :depth - units))))
-               ; Starting position is 0
-               {:horizontal 0 :depth 0}
-               ; Feed sequence of readings to reduce.
-               (line-seq rdr))]
-         (* (:horizontal position) (:depth position))))))
+     (let
+       [position
+        (reduce
+          (fn [position cmd]
+            (let [split-cmd (clojure.string/split cmd #" ")
+                  units (Integer/parseInt (nth split-cmd 1))
+                  command (nth split-cmd 0)]
+              (case command
+                "forward" (update position :horizontal + units)
+                "down" (update position :depth + units)
+                "up" (update position :depth - units))))
+          ; Starting position is 0
+          {:horizontal 0 :depth 0}
+          ; Feed sequence of readings to reduce.
+          (line-seq rdr))]
+       (* (:horizontal position) (:depth position)))))
  "/Users/a/w/4clojure/aoc2-input.txt")
 
 
@@ -221,22 +223,67 @@
 ((defn aoc2-part2
    [file]
    (with-open [rdr (clojure.java.io/reader file)]
-     (println
-       (let [position
-             (reduce
-               (fn [position cmd]
-                 (let [split-cmd (clojure.string/split cmd #" ")
-                       units (Integer/parseInt (nth split-cmd 1))
-                       command (nth split-cmd 0)]
-                   (case command
-                     "forward" (as-> position p
-                                   (update p :horizontal + units)
-                                   (update p :depth + (* units (:aim p))))
-                     "down" (update position :aim + units)
-                     "up" (update position :aim - units))))
-               ; Starting position is 0
-               {:horizontal 0 :depth 0 :aim 0}
-               ; Feed sequence of readings to reduce.
-               (line-seq rdr))]
-         (* (:horizontal position) (:depth position))))))
+     (let
+       [position
+        (reduce
+          (fn [position cmd]
+            (let [split-cmd (clojure.string/split cmd #" ")
+                  units (Integer/parseInt (nth split-cmd 1))
+                  command (nth split-cmd 0)]
+              (case command
+                "forward" (as-> position p
+                                (update p :horizontal + units)
+                                (update p :depth + (* units (:aim p))))
+                "down" (update position :aim + units)
+                "up" (update position :aim - units))))
+          ; Starting position is 0
+          {:horizontal 0 :depth 0 :aim 0}
+          ; Feed sequence of readings to reduce.
+          (line-seq rdr))]
+       (* (:horizontal position) (:depth position)))))
  "/Users/a/w/4clojure/aoc2-input.txt")
+
+; Mars Rover - https://github.com/priyaaank/MarsRover
+(defn parse-input [i]
+  (let [[x y d] i]
+    [(Integer/parseInt x) (Integer/parseInt y) (keyword d)]))
+
+(defn update-location [location cmd]
+  (let [[x y d] location
+        left {:N :W
+              :W :S
+              :S :E
+              :E :N}
+        right {:N :E
+               :E :S
+               :S :W
+               :W :N}]
+    (case cmd
+      \L [x y (left d)]
+      \R [x y (right d)]
+      \M (case d
+           :N [x (inc y) d]
+           :S [x (dec y) d]
+           :E [(inc x) y d]
+           :W [(dec x) y d]))))
+
+((defn mars-rover
+   [file]
+   (with-open [rdr (clojure.java.io/reader file)]
+     (:rovers
+       (reduce
+         (fn [final input]
+           (let [split-input (clojure.string/split input #" ")]
+             (case (count split-input)
+               ; Ignore upper-right coordinates of plateau as we aren't initializing a matrix/array.
+               2 final
+               ; Populate previous location for use in next iteration.
+               3 (assoc final :prev-location (parse-input split-input))
+               ; Update rover coordinates for based on previous location & directions.
+               1 (update final :rovers conj (reduce
+                                              update-location
+                                              (:prev-location final)
+                                              input)))))
+         {:prev-location nil :rovers []}
+         (line-seq rdr)))))
+ "/Users/a/w/4clojure/mars-rover.txt")
