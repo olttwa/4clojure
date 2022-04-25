@@ -1,3 +1,5 @@
+(ns main)
+
 ; https://4clojure.oxal.org/#/problem/1
 (= true true)
 
@@ -152,7 +154,6 @@
 ((fn tic-tac-toe
    ([board] (tic-tac-toe 0 board))
    ([c board]
-    ; QQQ: Idiomatic placeholder in Clojure is '_'?
     ; Iterate over all rows to find a winner.
     (let [winner (reduce (fn [_ r]
                            (when (and (= 1 (count (distinct r)))
@@ -163,9 +164,6 @@
       (if winner
         winner
         (case c
-          ; QQQ: Don't understand how (apply map vector board) works.
-          ; Source: https://stackoverflow.com/a/8315139/4552292.
-
           ; Transpose the matrix over diagonal so columns become rows.
           0 (tic-tac-toe 1 (apply map vector board))
           ; Provide 2 diagonals as rows.
@@ -262,28 +260,33 @@
  "/Users/a/w/4clojure/aoc2-input.txt")
 
 ; Mars Rover - https://github.com/priyaaank/MarsRover
+; QQQ: How to achieve extensibility in Clojure?
+; The way I see it, all inter-method calls/reduce are deeply coupled.
+; And if I were to look at this after a few months, I won't be able to make head/tail out of this :(
 (defn parse-input [i]
   (let [[x y d] i]
     [(Integer/parseInt x) (Integer/parseInt y) (keyword d)]))
 
-(defn update-location [location cmd]
-  (let [[x y d] location
-        left {:N :W
-              :W :S
-              :S :E
-              :E :N}
-        right {:N :E
-               :E :S
-               :S :W
-               :W :N}]
-    (case cmd
-      \L [x y (left d)]
-      \R [x y (right d)]
-      \M (case d
-           :N [x (inc y) d]
-           :S [x (dec y) d]
-           :E [(inc x) y d]
-           :W [(dec x) y d]))))
+(def left {:N :W
+           :W :S
+           :S :E
+           :E :N})
+
+(def right {:N :E
+            :E :S
+            :S :W
+            :W :N})
+
+(defn update-location
+  [[x y d] cmd]
+  (case cmd
+    \L [x y (left d)]
+    \R [x y (right d)]
+    \M (case d
+         :N [x (inc y) d]
+         :S [x (dec y) d]
+         :E [(inc x) y d]
+         :W [(dec x) y d])))
 
 ((defn mars-rover
    [file]
