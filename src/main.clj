@@ -263,9 +263,9 @@
 ; QQQ: How to achieve extensibility in Clojure?
 ; The way I see it, all inter-method calls/reduce are deeply coupled.
 ; And if I were to look at this after a few months, I won't be able to make head/tail out of this :(
-(defn parse-input [i]
-  (let [[x y d] i]
-    [(Integer/parseInt x) (Integer/parseInt y) (keyword d)]))
+(defn parse-input
+  [[x y d]]
+  [(Integer/parseInt x) (Integer/parseInt y) (keyword d)])
 
 (def left {:N :W
            :W :S
@@ -308,3 +308,7 @@
          {:prev-location nil :rovers []}
          (line-seq rdr)))))
  "/Users/a/w/4clojure/mars-rover.txt")
+
+; begin with fn, not with reduce
+; Basically, go bottom-up. Break down problems as much as you can into functions.
+; Prefer using data as behavior. Because it's much easier to change data.
